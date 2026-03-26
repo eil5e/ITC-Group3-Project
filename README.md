@@ -17,4 +17,5 @@ In your terminal run these codes
 1. git clone https://github.com/geraldchuaa/ITC-Group3-Project.git
 2. cd ITC-Group3-Project/web-page
 3. npm run dev
+
 Open http://localhost:3000 in your browser
