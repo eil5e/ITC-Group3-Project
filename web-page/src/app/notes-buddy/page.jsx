@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import studentData from "@/data/studentInfo.json";
+import ReactMarkdown from "react-markdown";
 
 const initialNotes = [
     { id: 1, title: "Lecture 1: Neural Networks", moduleCode: "CSCI-213", type: "TXT", date: "March 20, 2026", size: "14 KB" }
@@ -29,7 +30,7 @@ export default function NotesBuddyPage() {
 
     const handleDownloadNote = (e, note) => {
         e.stopPropagation();
-        const fileContent = `Module: ${note.moduleCode}\nTitle: ${note.title}\n\n[Your AI Summary Content Here]`;
+        const fileContent = `Module: ${note.moduleCode}\nTitle: ${note.title}\n\n${note.summary || '[No summary available]'}`;
         const blob = new Blob([fileContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         
@@ -60,40 +61,41 @@ export default function NotesBuddyPage() {
         setIsProcessing(true);
         setAiSummary("");
 
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const textContent = event.target.result;
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("moduleCode", uploadModule);
 
-            try {
-                const response = await fetch("/api/summarize", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: textContent, moduleCode: uploadModule }),
-                });
+            const response = await fetch("/api/summarize", {
+                method: "POST",
+                body: formData,
+            });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setAiSummary(data.summary);
-                } else {
-                    alert("Failed to generate summary. Please check your API key.");
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setIsProcessing(false);
+            const data = await response.json();
+
+            if (response.ok) {
+                setAiSummary(data.summary);
+            } else {
+                alert(data.error || "Failed to generate summary. Please check your API key.");
             }
-        };
-        reader.readAsText(file);
+        } catch (error) {
+            console.error(error);
+            alert("Something went wrong. Please try again.");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const handleSaveNote = () => {
+        const ext = uploadFile.name.split('.').pop().toUpperCase();
         const newNote = {
             id: Date.now(),
-            title: uploadFile.name.replace(".txt", ""),
+            title: uploadFile.name.replace(/\.[^/.]+$/, ""),
             moduleCode: uploadModule,
-            type: "TXT",
+            type: ext,
             date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-            size: `${(uploadFile.size / 1024).toFixed(1)} KB`
+            size: `${(uploadFile.size / 1024).toFixed(1)} KB`,
+            summary: aiSummary,
         };
 
         setNotes([newNote, ...notes]);
@@ -142,7 +144,7 @@ export default function NotesBuddyPage() {
                                 📤
                             </div>
                             <h2 className="text-2xl font-black text-gray-900 mb-2">Upload Your Lecture Notes</h2>
-                            <p className="text-gray-500 font-medium mb-6">Upload .TXT files and get an AI-generated summary instantly</p>
+                            <p className="text-gray-500 font-medium mb-6">Upload your notes and get an AI-generated summary instantly</p>
                             
                             <div className="flex items-center space-x-4 mb-4">
                                 <div className="text-left">
@@ -161,7 +163,7 @@ export default function NotesBuddyPage() {
                                 <div className="relative mt-5">
                                     <input 
                                         type="file" 
-                                        accept=".txt" 
+                                        accept=".txt,.pdf,.docx,.pptx"
                                         onChange={handleFileUpload}
                                         disabled={isProcessing}
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
@@ -173,8 +175,8 @@ export default function NotesBuddyPage() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center text-xs font-bold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-md border border-emerald-200 mt-2">
-                                ✅ Best format: TXT files work perfectly
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-md border border-emerald-200 mt-2">
+                                ✅ Supported: <span className="font-mono">PDF · DOCX · PPTX · TXT</span>
                             </div>
                         </div>
 
@@ -192,8 +194,8 @@ export default function NotesBuddyPage() {
                                         Save to {uploadModule}
                                     </button>
                                 </div>
-                                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
-                                    {aiSummary}
+                                <div className="prose prose-sm max-w-none text-gray-700">
+                                    <ReactMarkdown>{aiSummary}</ReactMarkdown>
                                 </div>
                             </div>
                         )}
@@ -206,7 +208,7 @@ export default function NotesBuddyPage() {
                                         <div className="w-6 h-6 rounded-full bg-simconnect-green text-white flex items-center justify-center text-xs font-bold mr-3 shrink-0">1</div>
                                         <div>
                                             <p className="font-bold text-gray-900 text-sm">Upload Notes</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">Upload your plain text (.txt) lecture transcripts.</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">Upload PDF, DOCX, PPTX, or TXT lecture files.</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start">
@@ -229,10 +231,10 @@ export default function NotesBuddyPage() {
                             <div className="bg-white border-2 border-gray-900 rounded-xl p-6">
                                 <h3 className="text-lg font-black text-gray-900 uppercase mb-4 border-b-2 border-gray-100 pb-2">Tips for Best Results</h3>
                                 <ul className="space-y-3 list-disc pl-5 text-sm text-gray-700 font-medium">
-                                    <li>Upload clear, well-formatted text for better summaries.</li>
+                                    <li>PDF, DOCX, PPTX, and TXT are supported. Old .doc/.ppt formats are not.</li>
+                                    <li>Text-based files work best — image-only PDFs cannot be read.</li>
                                     <li>Make sure you select the correct module before uploading.</li>
-                                    <li>AI summaries are saved automatically for easy reference before exams.</li>
-                                    <li>To test this feature, copy and paste an article into a plain `.txt` file on your computer and upload it!</li>
+                                    <li>AI summaries are saved for easy reference before exams.</li>
                                 </ul>
                             </div>
                         </div>

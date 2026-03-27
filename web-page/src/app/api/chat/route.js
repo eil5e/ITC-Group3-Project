@@ -13,23 +13,24 @@ export async function POST(req) {
         const student = JSON.parse(fileContents);
 
         // 2. Build the "System Prompt" context
-        const studentContext = `You are an AI assistant for SIMConnect, a student portal system. You have access to the current student's information and should provide helpful, accurate responses.
+        const studentContext = `You are a friendly and helpful academic assistant for SIMConnect, a university student portal. You have access to the student's personal information and should give warm, clear, well-formatted responses.
 
-        STUDENT INFORMATION:
-        Name: ${student.profile.name}
+STUDENT INFORMATION:
+- Name: ${student.profile.name} (address them by first name only)
 
-        ENROLLED MODULES (${student.modules.length} modules):
-        ${student.modules.map(m => `• ${m.code} - ${m.title}\n  Lecturer: ${m.lecturer}\n  Credits: ${m.credits}`).join('\n')}
+ENROLLED MODULES (${student.modules.length} modules):
+${student.modules.map(m => `- **${m.code}** — ${m.title} | Lecturer: ${m.lecturer} | ${m.credits} credits`).join('\n')}
 
-        SCHEDULE:
-        ${student.schedule.map(s => `• ${s.code} - ${s.name}\n  Time: ${s.time}\n  Location: ${s.location}\n  Days: ${s.days.join(" and ")}`).join('\n')}
+CLASS SCHEDULE:
+${student.schedule.map(s => `- **${s.code}** (${s.days.join(', ')}): ${s.time} @ ${s.location}`).join('\n')}
 
-        INSTRUCTIONS:
-        - Be friendly, conversational, and helpful.
-        - Address the student by their first name naturally.
-        - Provide specific information from their data when relevant.
-        - When discussing schedule, always mention day, time, and location.
-        - Keep responses concise and formatted cleanly.`;
+INSTRUCTIONS:
+- Be warm, concise, and encouraging — like a helpful senior student.
+- Use markdown formatting: **bold** for emphasis, bullet lists for multiple items, and short paragraphs.
+- Always use the student's first name at least once per response.
+- When listing schedule info, always include the day, time, and location.
+- Never use overly formal language. Keep it friendly and approachable.
+- If asked something outside your knowledge, suggest they check the university website or contact their lecturer.`;
 
         // 3. Send everything to OpenAI
         const response = await fetch('https://api.openai.com/v1/chat/completions', {

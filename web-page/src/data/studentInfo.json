@@ -5,26 +5,22 @@
   },
   "schedule": [
     {
-      "id": 1,
-      "code": "CSCI-312",
-      "name": "ADVANCED WEB ARCHITECTURE",
-      "time": "02:00pm - 04:00pm",
-      "location": "Building 4, Lab 2B",
-      "instructor": "Prof. Lim",
-      "days": [
-        "Friday"
-      ]
-    },
-    {
       "id": 2,
       "code": "CSCI-213",
-      "name": "INTRO TO ARTIFICIAL INTELLIGENCE",
-      "time": "10:00am - 11:30am",
+      "name": "Intro to Artificial Intelligence",
+      "time": "11:30am - 03:00pm",
       "location": "Building 1, Lecture Hall A",
       "instructor": "Dr. Smith",
       "days": [
-        "Tuesday"
-      ]
+        "Tuesday",
+        "Wednesday"
+      ],
+      "dayTimes": {
+        "Tuesday": "11:30am - 03:00pm",
+        "Wednesday": "12:30pm - 05:00pm"
+      },
+      "startDate": "2026-03-12",
+      "endDate": "2026-06-12"
     },
     {
       "id": 3,
@@ -60,46 +56,38 @@
       ]
     }
   ],
- "modules": [
-    { 
-      "code": "CSCI-312", 
-      "title": "Advanced Web Architecture", 
-      "lecturer": "Prof. Lim", 
-      "credits": 4, 
-      "fee": 1200.00,
-      "theme": "bg-emerald-100 text-emerald-800 border-emerald-300" 
+  "modules": [
+    {
+      "code": "CSCI-213",
+      "title": "Intro to Artificial Intelligence",
+      "lecturer": "Dr. Smith",
+      "credits": 4,
+      "fee": 1200,
+      "theme": "bg-blue-100 text-blue-800 border-blue-300"
     },
-    { 
-      "code": "CSCI-213", 
-      "title": "Intro to Artificial Intelligence", 
-      "lecturer": "Dr. Smith", 
-      "credits": 4, 
-      "fee": 1200.00,
-      "theme": "bg-blue-100 text-blue-800 border-blue-300" 
+    {
+      "code": "BUS-101",
+      "title": "Innovation & Startups",
+      "lecturer": "Dr. Lee",
+      "credits": 3,
+      "fee": 900,
+      "theme": "bg-purple-100 text-purple-800 border-purple-300"
     },
-    { 
-      "code": "BUS-101", 
-      "title": "Innovation & Startups", 
-      "lecturer": "Dr. Lee", 
-      "credits": 3, 
-      "fee": 900.00,
-      "theme": "bg-purple-100 text-purple-800 border-purple-300" 
+    {
+      "code": "MATH-201",
+      "title": "Discrete Mathematics",
+      "lecturer": "Prof. Davis",
+      "credits": 4,
+      "fee": 1200,
+      "theme": "bg-pink-100 text-pink-800 border-pink-300"
     },
-    { 
-      "code": "MATH-201", 
-      "title": "Discrete Mathematics", 
-      "lecturer": "Prof. Davis", 
-      "credits": 4, 
-      "fee": 1200.00,
-      "theme": "bg-pink-100 text-pink-800 border-pink-300" 
-    },
-    { 
-      "code": "MKT-250", 
-      "title": "Market Analysis in Southeast Asia", 
-      "lecturer": "Prof. Tan", 
-      "credits": 4, 
-      "fee": 1200.00,
-      "theme": "bg-amber-100 text-amber-800 border-amber-300" 
+    {
+      "code": "MKT-250",
+      "title": "Market Analysis in Southeast Asia",
+      "lecturer": "Prof. Tan",
+      "credits": 4,
+      "fee": 1200,
+      "theme": "bg-amber-100 text-amber-800 border-amber-300"
     }
   ]
 }
