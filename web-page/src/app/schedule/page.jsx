@@ -102,10 +102,20 @@ export default function SchedulePage() {
 
                         {days.map(day => {
                             const currentDayOfWeek = DAYS_OF_WEEK[new Date(year, month, day).getDay()];
-                            
+                            const currentDateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
                             const todaysClasses = studentData.schedule
-                                .filter(c => c.days.includes(currentDayOfWeek))
-                                .sort((a, b) => parseTimeForSorting(a.time) - parseTimeForSorting(b.time));
+                                .filter(c => {
+                                    if (!c.days.includes(currentDayOfWeek)) return false;
+                                    if (c.startDate && currentDateStr < c.startDate) return false;
+                                    if (c.endDate && currentDateStr > c.endDate) return false;
+                                    return true;
+                                })
+                                .map(c => ({
+                                    ...c,
+                                    displayTime: c.dayTimes?.[currentDayOfWeek] ?? c.time,
+                                }))
+                                .sort((a, b) => parseTimeForSorting(a.displayTime) - parseTimeForSorting(b.displayTime));
 
                             return (
                                 <div key={day} className={`min-h-[150px] p-2.5 flex flex-col transition-colors ${isToday(day) ? "bg-emerald-50" : "bg-white"} hover:bg-gray-50`}>
@@ -126,7 +136,7 @@ export default function SchedulePage() {
                                             >
                                                 {/* CHANGED: Font sizes significantly bumped up! */}
                                                 <p className="text-xs font-extrabold truncate leading-tight">{cls.code}</p>
-                                                <p className="text-[11px] font-bold opacity-90 truncate mt-0.5">{cls.time}</p>
+                                                <p className="text-[11px] font-bold opacity-90 truncate mt-0.5">{cls.displayTime}</p>
                                             </button>
                                         ))}
                                     </div>
@@ -169,8 +179,8 @@ export default function SchedulePage() {
                                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl border-2 border-gray-900">🕒</div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Schedule</p>
-                                    <p className="font-extrabold text-gray-900 text-lg">{selectedClass.time}</p>
-                                    <p className="text-sm font-medium text-gray-700">{selectedClass.days.join("s, ")}s</p>
+                                    <p className="font-extrabold text-gray-900 text-lg">{selectedClass.displayTime ?? selectedClass.time}</p>
+                                    <p className="text-sm font-medium text-gray-700">{selectedClass.days.join(", ")}</p>
                                 </div>
                             </div>
                             

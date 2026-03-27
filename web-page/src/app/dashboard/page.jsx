@@ -6,6 +6,7 @@ import ToDoList from "@/components/ToDoList";
 import QuickAccess from "@/components/QuickAccess";
 import NextClass from "@/components/NextClass";
 import ChatBot from "@/components/ChatBot"; // Import the new ChatBot
+import GlobalChat from "@/components/GlobalChat";
 
 import studentData from "@/data/studentInfo.json";
 
@@ -56,6 +57,8 @@ export default function DashboardPage() {
 
       {/* The actual ChatBot window (Only renders when isChatOpen is true) */}
       {isChatOpen && <ChatBot onClose={() => setIsChatOpen(false)} />}
+
+      <GlobalChat />
     </div>
   );
 }

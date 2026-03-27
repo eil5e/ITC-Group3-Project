@@ -1,9 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-// 1. IMPORT YOUR NEW CHAT COMPONENT HERE
-import GlobalChat from "../components/GlobalChat";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,8 +26,7 @@ export default function RootLayout({ children }) {
         {/* This renders whatever page you are currently on */}
         {children}
         
-        {/* 2. DROP THE CHATBOT HERE SO IT FLOATS OVER EVERY PAGE */}
-        <GlobalChat />
+
       </body>
     </html>
   );
