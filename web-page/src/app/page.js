@@ -14,7 +14,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res =  await fetch ("/api/login", {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -23,13 +23,22 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("loggedInUser", username);
+        localStorage.setItem("currentUser", JSON.stringify({
+          username: data.username,
+          ...data.profile,
+          schedule: data.schedule || [],
+          modules: data.modules || [],
+        }));
         router.push("/dashboard");
       } else {
-        setError(data.error || "Invalid username or password.");
+        if (data.incomplete) {
+          router.push(`/signup/signup-details?username=${encodeURIComponent(username)}`);
+          return;
+        }
+        setError(data.error || "Login failed.");
       }
     } catch (err) {
-      setError("Network error. Could not connect to the server.");
+      setError("Network error. Could not connect to server.");
     }
   }
 

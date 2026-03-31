@@ -5,35 +5,41 @@ import { NextResponse } from "next/server";
 // Find exactly where the JSON file lives in your project
 const dataFilePath = path.join(process.cwd(), "src/data/studentInfo.json");
 
-// Helper function to read the file
-function getStudentData() {
+function readAllStudents() {
     const fileContents = fs.readFileSync(dataFilePath, "utf8");
     return JSON.parse(fileContents);
+}
+
+function getStudentData(username) {
+    const allStudents = readAllStudents();
+    const student = allStudents.find((item) => item.username === username);
+    if (!student) {
+        throw new Error("Student not found");
+    }
+    return { allStudents, student };
 }
 
 // 1. POST: ADD A NEW MODULE
 export async function POST(request) {
     try {
         const newModule = await request.json();
-        const data = getStudentData();
+        const { allStudents, student } = getStudentData(newModule.username);
 
         const credits = Number(newModule.credits);
-        
-        // Calculate the fee dynamically (e.g., $300 per credit)
-        const calculatedFee = credits * 300.00; 
+        const calculatedFee = credits * 300.00;
 
         // Add to the 'modules' array
-        data.modules.push({
+        student.modules.push({
             code: newModule.code,
             title: newModule.name,
             lecturer: newModule.instructor,
-            credits: credits,
-            fee: calculatedFee, // <-- Saves the calculated dollar amount to the database!
-            theme: "bg-teal-100 text-teal-800 border-teal-300" 
+            credits,
+            fee: calculatedFee,
+            theme: "bg-teal-100 text-teal-800 border-teal-300"
         });
 
         // Add to the 'schedule' array
-        data.schedule.push({
+        student.schedule.push({
             id: Date.now(),
             code: newModule.code,
             name: newModule.name,
@@ -43,11 +49,11 @@ export async function POST(request) {
             endDate: newModule.endDate || null,
             location: newModule.location,
             instructor: newModule.instructor,
-            days: newModule.days.split(",").map(d => d.trim())
+            days: newModule.days.split(",").map((d) => d.trim())
         });
 
         // Save the file
-        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+        fs.writeFileSync(dataFilePath, JSON.stringify(allStudents, null, 2));
         return NextResponse.json({ message: "Enrolled Successfully" }, { status: 200 });
         
     } catch (error) {
@@ -59,9 +65,9 @@ export async function POST(request) {
 export async function PATCH(request) {
     try {
         const body = await request.json();
-        const data = getStudentData();
+        const { allStudents, student } = getStudentData(body.username);
 
-        const mod = data.modules.find(m => m.code === body.code);
+        const mod = student.modules.find((m) => m.code === body.code);
         if (mod) {
             mod.title = body.title;
             mod.lecturer = body.lecturer;
@@ -69,7 +75,7 @@ export async function PATCH(request) {
             mod.fee = Number(body.credits) * 300;
         }
 
-        const sched = data.schedule.find(s => s.code === body.code);
+        const sched = student.schedule.find((s) => s.code === body.code);
         if (sched) {
             sched.name = body.title;
             sched.instructor = body.lecturer;
@@ -81,7 +87,7 @@ export async function PATCH(request) {
             sched.endDate = body.endDate || null;
         }
 
-        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+        fs.writeFileSync(dataFilePath, JSON.stringify(allStudents, null, 2));
         return NextResponse.json({ message: "Updated Successfully" });
     } catch (error) {
         return NextResponse.json({ error: "Failed to update module" }, { status: 500 });
@@ -91,15 +97,14 @@ export async function PATCH(request) {
 // 3. DELETE: DROP A MODULE
 export async function DELETE(request) {
     try {
-        const { code } = await request.json();
-        const data = getStudentData();
+        const { username, code } = await request.json();
+        const { allStudents, student } = getStudentData(username);
 
-        // Filter out the dropped class from both arrays
-        data.modules = data.modules.filter(mod => mod.code !== code);
-        data.schedule = data.schedule.filter(cls => cls.code !== code);
+        student.modules = student.modules.filter((mod) => mod.code !== code);
+        student.schedule = student.schedule.filter((cls) => cls.code !== code);
 
         // Save the file
-        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+        fs.writeFileSync(dataFilePath, JSON.stringify(allStudents, null, 2));
         return NextResponse.json({ message: "Dropped Successfully" }, { status: 200 });
 
     } catch (error) {

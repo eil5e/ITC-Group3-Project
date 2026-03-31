@@ -1,84 +1,110 @@
-{
-  "profile": {
-    "name": "Chen Tu Dou",
-    "initial": "C",
-    "studentId": "S10234567A",
-    "email": "student@mymail.sim.edu.sg"
-  },
-  "schedule": [
-    {
-      "id": 2,
-      "code": "CSCI-213",
-      "name": "Intro to Artificial Intelligence",
-      "time": "11:30am - 03:00pm",
-      "location": "Building 1, Lecture Hall A",
-      "instructor": "Dr. Smith",
-      "days": [
-        "Tuesday",
-        "Wednesday"
-      ],
-      "dayTimes": {
-        "Tuesday": "11:30am - 03:00pm",
-        "Wednesday": "12:30pm - 05:00pm"
+[
+  {
+    "username": "student",
+    "password": "password123",
+    "profile": {
+      "name": "Chen Tu Dou",
+      "initial": "C",
+      "studentId": "S10234567A",
+      "email": "student@mymail.sim.edu.sg",
+      "schedule": []
+    },
+    "schedule": [
+      {
+        "id": 2,
+        "code": "CSCI-213",
+        "name": "Intro to Artificial Intelligence",
+        "time": "11:30am - 03:00pm",
+        "location": "Building 1, Lecture Hall A",
+        "instructor": "Dr. Smith",
+        "days": [
+          "Tuesday",
+          "Wednesday"
+        ],
+        "dayTimes": {
+          "Tuesday": "11:30am - 03:00pm",
+          "Wednesday": "12:30pm - 05:00pm"
+        },
+        "startDate": "2026-03-12",
+        "endDate": "2026-06-12"
       },
-      "startDate": "2026-03-12",
-      "endDate": "2026-06-12"
+      {
+        "id": 3,
+        "code": "BUS-101",
+        "name": "INNOVATION & STARTUPS",
+        "time": "01:00pm - 03:00pm",
+        "location": "Business School, Room 402",
+        "instructor": "Dr. Lee",
+        "days": [
+          "Tuesday"
+        ]
+      },
+      {
+        "id": 4,
+        "code": "MATH-201",
+        "name": "DISCRETE MATHEMATICS",
+        "time": "09:00am - 11:00am",
+        "location": "Building 3, Room 104",
+        "instructor": "Prof. Davis",
+        "days": [
+          "Monday"
+        ]
+      }
+    ],
+    "modules": [
+      {
+        "code": "CSCI-213",
+        "title": "Intro to Artificial Intelligence",
+        "lecturer": "Dr. Smith",
+        "credits": 4,
+        "fee": 1200,
+        "theme": "bg-blue-100 text-blue-800 border-blue-300"
+      },
+      {
+        "code": "BUS-101",
+        "title": "Innovation & Startups",
+        "lecturer": "Dr. Lee",
+        "credits": 3,
+        "fee": 900,
+        "theme": "bg-purple-100 text-purple-800 border-purple-300"
+      },
+      {
+        "code": "MATH-201",
+        "title": "Discrete Mathematics",
+        "lecturer": "Prof. Davis",
+        "credits": 4,
+        "fee": 1200,
+        "theme": "bg-pink-100 text-pink-800 border-pink-300"
+      },
+      {
+        "code": "MKT-250",
+        "title": "Market Analysis in Southeast Asia",
+        "lecturer": "Prof. Tan",
+        "credits": 4,
+        "fee": 1200,
+        "theme": "bg-amber-100 text-amber-800 border-amber-300"
+      }
+    ],
+    "todos": [
+      {
+        "id": 1774989779581,
+        "title": "chup",
+        "status": "not_started",
+        "dueDate": null
+      }
+    ]
+  },
+  {
+    "username": "lilo",
+    "password": "1234567",
+    "profile": {
+      "name": "Lilo Armadillo",
+      "initial": "L",
+      "studentId": "Q67676767P",
+      "email": "lilomadilo@mymail.sim.edu.sg",
+      "schedule": []
     },
-    {
-      "id": 3,
-      "code": "BUS-101",
-      "name": "INNOVATION & STARTUPS",
-      "time": "01:00pm - 03:00pm",
-      "location": "Business School, Room 402",
-      "instructor": "Dr. Lee",
-      "days": [
-        "Tuesday"
-      ]
-    },
-    {
-      "id": 4,
-      "code": "MATH-201",
-      "name": "DISCRETE MATHEMATICS",
-      "time": "09:00am - 11:00am",
-      "location": "Building 3, Room 104",
-      "instructor": "Prof. Davis",
-      "days": [
-        "Monday"
-      ]
-    }
-  ],
-  "modules": [
-    {
-      "code": "CSCI-213",
-      "title": "Intro to Artificial Intelligence",
-      "lecturer": "Dr. Smith",
-      "credits": 4,
-      "fee": 1200,
-      "theme": "bg-blue-100 text-blue-800 border-blue-300"
-    },
-    {
-      "code": "BUS-101",
-      "title": "Innovation & Startups",
-      "lecturer": "Dr. Lee",
-      "credits": 3,
-      "fee": 900,
-      "theme": "bg-purple-100 text-purple-800 border-purple-300"
-    },
-    {
-      "code": "MATH-201",
-      "title": "Discrete Mathematics",
-      "lecturer": "Prof. Davis",
-      "credits": 4,
-      "fee": 1200,
-      "theme": "bg-pink-100 text-pink-800 border-pink-300"
-    },
-    {
-      "code": "MKT-250",
-      "title": "Market Analysis in Southeast Asia",
-      "lecturer": "Prof. Tan",
-      "credits": 4,
-      "fee": 1200,
-      "theme": "bg-amber-100 text-amber-800 border-amber-300"
-    }
-  ]
-}
+    "schedule": [],
+    "modules": []
+  }
+]

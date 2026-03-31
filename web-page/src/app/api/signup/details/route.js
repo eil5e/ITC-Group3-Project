@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
 
-const usersFilePath = path.join(process.cwd(), "src/data/users.json");
+const usersFilePath = path.join(process.cwd(), "src/data/studentInfo.json");
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +27,17 @@ export async function POST(request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
+        const initial = name.charAt(0).toUpperCase();
+
         //overwrite only profile object
         users[userIndex] = {
             ...users[userIndex],
             profile: {
                 name,
+                initial,
                 studentId,
                 email,
-                courses: []
+                schedule: users[userIndex].profile?.courses || []
             }
         };
 

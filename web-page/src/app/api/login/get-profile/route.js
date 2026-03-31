@@ -2,7 +2,9 @@ import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
 
-const usersFilePath = path.join(process, cwd(), "src/data/users.json");
+const usersFilePath = path.join(process.cwd(), "src/data/studentInfo.json");
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request) {
     try {
@@ -12,9 +14,8 @@ export async function POST(request) {
             return NextResponse.json({ error: "No users found" }, { status:404 });
         }
 
-        const fileContents = fs.readFileSync(usersFilePathFilePath, "utf8");
-        const users = JSON.parse(fileContents);
-
+        const fileContents = fs.readFileSync(usersFilePath, "utf8");
+        const users = fileContents.trim() ? JSON.parse(fileContents) : [];
         const user = users.find(u => u.username === username);
 
         if (!user) {

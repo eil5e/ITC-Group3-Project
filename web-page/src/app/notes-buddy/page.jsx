@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import studentData from "@/data/studentInfo.json";
 import ReactMarkdown from "react-markdown";
 
 const initialNotes = [
@@ -10,17 +9,43 @@ const initialNotes = [
 ];
 
 export default function NotesBuddyPage() {
+    const [user, setUser] = useState(null);
     const [notes, setNotes] = useState(initialNotes);
     const [selectedModule, setSelectedModule] = useState("All");
     const [openDropdownId, setOpenDropdownId] = useState(null);
 
     const [isUploadView, setIsUploadView] = useState(false);
-    const [uploadModule, setUploadModule] = useState(studentData.modules[0]?.code || "");
+    const [uploadModule, setUploadModule] = useState("");
     const [uploadFile, setUploadFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [aiSummary, setAiSummary] = useState("");
 
-    const enrolledModules = studentData.modules;
+    useEffect(() => {
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            
+            if (parsedUser.modules && parsedUser.modules.length > 0) {
+                setUploadModule(parsedUser.modules[0].code);
+            }
+        }
+    }, []);
+
+    if (!user) {
+        return (
+            <div className="flex min-h-screen bg-simconnect-bg">
+                <Sidebar />
+                <main className="flex-1 p-8 md:p-12 h-screen flex items-center justify-center">
+                    <p className="font-bold text-gray-500 animate-pulse text-lg">
+                        LOADING NOTES-BUDDY...
+                    </p>
+                </main>
+            </div>
+        );
+    }
+
+    const enrolledModules = user.modules || [];
     const filteredNotes = selectedModule === "All" ? notes : notes.filter(note => note.moduleCode === selectedModule);
 
     const toggleDropdown = (e, id) => {

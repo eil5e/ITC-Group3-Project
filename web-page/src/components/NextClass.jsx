@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import studentData from "@/data/studentInfo.json";
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -29,12 +28,18 @@ export default function NextClass() {
     const [isMarked, setIsMarked] = useState(false);
 
     useEffect(() => {
+        const savedUser = localStorage.getItem("currentUser");
+        if (!savedUser) return;
+
+        const user = JSON.parse(savedUser);
+        const schedule = user.schedule || [];
+
         const findNextClass = () => {
             const now = new Date();
             const currentDayIndex = now.getDay();
             const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
-            const sortedClasses = [...studentData.schedule].sort((a, b) => 
+            const sortedClasses = [...schedule].sort((a, b) => 
                 parseTimeForComparison(a.time) - parseTimeForComparison(b.time)
             );
 
@@ -70,7 +75,7 @@ export default function NextClass() {
     if (!upcomingClass) {
         return (
             <div className="w-full p-6 border-2 border-gray-900 rounded-lg bg-white min-h-[300px] flex items-center justify-center">
-                <p className="font-bold text-gray-500 animate-pulse text-lg">Scanning schedule...</p>
+                <p className="font-bold text-gray-500 text-lg">No upcoming classes! Rest well ⸜(｡˃ ᵕ ˂ )⸝♡</p>
             </div>
         );
     }

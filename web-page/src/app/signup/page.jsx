@@ -37,7 +37,7 @@ export default function SignupPage() {
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => {
-          router.push(`/signup/signup-details?username=${encodeURIComponent(username)}`);
+          router.push(`/signup/details?username=${encodeURIComponent(username)}`);
         }, 2000);
       } else {
         setError(data.error || "Failed to create account.");

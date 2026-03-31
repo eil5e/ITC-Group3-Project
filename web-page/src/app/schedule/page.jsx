@@ -1,16 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import studentData from "@/data/studentInfo.json";
 
 const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTHS = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-
-const getSubjectTheme = (code) => {
-    const matchingModule = studentData.modules.find(mod => mod.code === code);
-    return matchingModule?.theme || "bg-gray-100 text-gray-800 border-gray-300";
-};
 
 const parseTimeForSorting = (timeString) => {
     if (!timeString) return 0;
@@ -30,8 +24,35 @@ const parseTimeForSorting = (timeString) => {
 };
 
 export default function SchedulePage() {
+    const [user, setUser] = useState(null);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedClass, setSelectedClass] = useState(null);
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
+    }, []);
+
+    const getSubjectTheme = (code) => {
+        if (!user || !user.modules) return "bg-gray-100 text-gray-800 border-gray-300";
+        const matchingModule = user.modules.find(mod => mod.code === code);
+        return matchingModule?.theme || "bg-gray-100 text-gray-800 border-gray-300";
+    };
+
+    if (!user) {
+        return (
+            <div className="flex min-h-screen bg-simconnect-bg">
+                <Sidebar />
+                <main className="flex-1 p-8 md:p-12 h-screen flex items-center justify-center">
+                    <p className="text-gray-500 font-bold animate-pulse text-lg">
+                        LOADING YOUR SCHEDULE...
+                    </p>
+                </main>
+            </div>
+        );
+    }
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -104,7 +125,7 @@ export default function SchedulePage() {
                             const currentDayOfWeek = DAYS_OF_WEEK[new Date(year, month, day).getDay()];
                             const currentDateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
-                            const todaysClasses = studentData.schedule
+                            const todaysClasses = (user.schedule || [])
                                 .filter(c => {
                                     if (!c.days.includes(currentDayOfWeek)) return false;
                                     if (c.startDate && currentDateStr < c.startDate) return false;

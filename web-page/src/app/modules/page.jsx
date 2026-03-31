@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
-import studentData from "@/data/studentInfo.json";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -51,8 +50,9 @@ function TimeRange({ startVal, endVal, onStart, onEnd }) {
 }
 
 export default function ModulesPage() {
-    const modules = studentData.modules;
-    const schedule = studentData.schedule;
+    const [user, setUser] = useState(null);
+    // const modules = studentData.modules;
+    // const schedule = studentData.schedule;
     const [editing, setEditing] = useState(null); // { mod, sched }
     const [isSaving, setIsSaving] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
@@ -70,6 +70,26 @@ export default function ModulesPage() {
     const [sharedEnd, setSharedEnd] = useState("");
     const [perDayTimes, setPerDayTimes] = useState({});
 
+    useEffect(() => {
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
+    }, []);
+
+    if (!user) {
+        return (
+            <div className="flex min-h-screen bg-simconnect-bg">
+                <Sidebar />
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <p className="font-bold text-gray-500 animate-pulse">Loading Modules...</p>
+                </main>
+            </div>
+        );
+    }
+
+    const modules = user.modules || [];
+    const schedule = user.schedule || [];
     const totalModules = modules.length;
     const totalCredits = modules.reduce((sum, mod) => sum + mod.credits, 0);
     const averageCredits = totalModules ? (totalCredits / totalModules).toFixed(1) : "0";
@@ -142,6 +162,33 @@ export default function ModulesPage() {
         }
 
         setIsSaving(true);
+         try {
+            const response = await fetch("/api/enroll", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: user.username, // 🟢 Pass username to backend
+                    code: editing.mod.code,
+                    title, lecturer, credits: Number(credits),
+                    location,
+                    days: selectedDays,
+                    time: timeFormatted,
+                    dayTimes: dayTimesFormatted,
+                    startDate: startDate || null,
+                    endDate: endDate || null,
+                }),
+            });
+            if (response.ok) {
+                const updatedUser = {...user};
+                window.location.reload();
+            } else {
+            setErrorMsg("Failed to save changes. Please try again.");
+            }
+        } catch (error) {
+            setErrorMsg("An error occurred while saving changes. Please try again.");
+        }
+        setIsSaving(false);
+
         setErrorMsg("");
 
         const response = await fetch("/api/enroll", {
@@ -158,13 +205,6 @@ export default function ModulesPage() {
                 endDate: endDate || null,
             }),
         });
-
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            setErrorMsg("Failed to save changes. Please try again.");
-        }
-        setIsSaving(false);
     }
 
     const inputClass = "w-full p-2.5 border-2 border-gray-300 rounded-lg focus:border-gray-900 outline-none font-medium placeholder:text-gray-500 text-simconnect-green text-sm";

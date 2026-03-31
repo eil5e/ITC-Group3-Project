@@ -2,7 +2,9 @@ import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
 
-const usersFilePath = path.join(process.cwd(), "src/data/users.json");
+const usersFilePath = path.join(process.cwd(), "src/data/studentInfo.json");
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request) {
     try {
@@ -12,24 +14,34 @@ export async function POST(request) {
             return NextResponse.json({ error: "Username and Password are required" }, { status: 400 });
         }
 
-        let users = [];
-        if (fs.existsSync(usersFilePath)) {
-            const fileContents = fs.readFileSync(usersFilePath, "utf8")
-            users = JSON.parse(fileContents);
+        if (!fs.existsSync(usersFilePath)) {
+            return NextResponse.json({ error: "Database not found. Please sign up first." }, { status: 404 });
         }
 
-        const validUser = users.find(
-            (user) => user.username === username && user.password === password
-        );
+        const fileContents = fs.readFileSync(usersFilePath, "utf8");
+        let users = fileContents.trim() ? JSON.parse(fileContents) : [];
+        const user = users.find(u => u.username === username);
 
-        const isDefaultUser = username === "student" && password === "password123";
-
-        if (validUser || isDefaultUser) {
-            return NextResponse.json({ message: "Login successful" });
-            // router.push("/dashboard");
-        } else {
-            return NextResponse.json({ error: "Invalid username or password" });
+        if (!user) {
+            return NextResponse.json({ error: "Invalid username or password" }, {status: 401 });
         }
+
+        if (user.password !== password) {
+            return NextResponse.json({ error: "Invalid username or password" }, {status: 401 });
+        }
+
+        if (!user.profile) {
+            return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+        }
+
+        //success scenario
+        return NextResponse.json({
+            message: "Login successful",
+            username: user.username,
+            profile: user.profile || { name: user.username, initial: user.username[0] },
+            schedule: user.schedule || [],
+            modules: user.modules || [],
+        });
     } catch (error) {
         console.error("Login Error:", error);
         return NextResponse.json({ error: "Failed to login on server" }, { status: 500 });

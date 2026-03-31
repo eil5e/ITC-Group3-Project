@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import studentData from "@/data/studentInfo.json"; //? yes no?
 
 export default function SettingsPage() {
-    const [name, setName] = useState("" || studentData.profile.name);
-    const [studentId, setStudentId] = useState("" || studentData.profile.studentId || "S10234567A");
-    const [email, setEmail] = useState("" || studentData.profile.email || "student@mymail.sim.edu.sg");
+    const [name, setName] = useState("");
+    const [studentId, setStudentId] = useState("");
+    const [email, setEmail] = useState("");
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState("");
 
@@ -18,33 +17,13 @@ export default function SettingsPage() {
     const [passwordError, setPasswordError] = useState("");
 
     useEffect(() => {
-        const username = localStorage.getItem("loggedInUser");
-
-        if (!username) {
-            window.location.href = "/"; // Redirect to login if not logged in...need?
-            return;
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            setName(user.name || "Name not set");
+            setStudentId(user.studentId || "ID not set");
+            setEmail(user.email || "Email not set");
         }
-
-        async function loadProfile() {
-            try {
-                const res = await fetch ("/api/profile", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username }),
-                });
-
-                const data = await res.json();
-                if (res.ok) {
-                    setName(data.profile.name || "");
-                    setStudentId(data.profile.studentId || "");
-                    setEmail(data.profile.email || "");
-                }
-            } catch (err) {
-                console.error("Failed to load profile:", err);
-            }
-        }
-
-        loadProfile();
     }, []);
 
 
@@ -53,32 +32,42 @@ export default function SettingsPage() {
         setProfileSaved(false);
         setProfileError("");
         try {
+            const savedUser = JSON.parse(localStorage.getItem("currentUser"));
             const res = await fetch("/api/profile", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, studentId, email }),
+                body: JSON.stringify({
+                    username: savedUser?.username,
+                    name,
+                    studentId,
+                    email
+                }),
             });
             if (res.ok) {
                 setProfileSaved(true);
+                const savedUser = JSON.parse(localStorage.getItem("currentUser"));
+                localStorage.setItem("currentUser", JSON.stringify({
+                    ...savedUser,
+                    name,
+                    studentId,
+                    email
+                }));
                 setTimeout(() => setProfileSaved(false), 3000);
             } else {
                 const errorData = await res.json();
                 console.error("Server says:", errorData.error);
-                setProfileError("else. Failed to save profile.");
+                setProfileError("Failed to save profile.");
             }
         } catch (err) {
             setProfileError("Network Error. Please try again.");
         }
     }
 
-    function handleChangePassword(e) {
+        async function handleChangePassword(e) {
         e.preventDefault();
         setPasswordMsg("");
         setPasswordError("");
-        if (currentPassword !== "password123") {
-            setPasswordError("Current password is incorrect.");
-            return;
-        }
+
         if (newPassword.length < 6) {
             setPasswordError("New password must be at least 6 characters.");
             return;
@@ -91,11 +80,33 @@ export default function SettingsPage() {
             setPasswordError("New password cannot be the same as current password.");
             return;
         }
-        setPasswordMsg("Password updated successfully.");
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        setTimeout(() => setPasswordMsg(""), 3000);
+
+        try {
+            const savedUser = JSON.parse(localStorage.getItem("currentUser"));
+            const res = await fetch("/api/profile/password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    username: savedUser?.username,
+                    currentPassword,
+                    newPassword 
+                }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setPasswordMsg("Password updated successfully.");
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setTimeout(() => setPasswordMsg(""), 3000);
+            } else {
+                setPasswordError(data.error || "Failed to update password.");
+            }
+        } catch (err) {
+            setPasswordError("Network Error. Please try again.");
+        }
     }
 
     const initial = name.trim() ? name.trim()[0].toUpperCase() : "?";

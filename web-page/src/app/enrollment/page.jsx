@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import studentData from "@/data/studentInfo.json";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -32,6 +31,8 @@ function TimeRange({ startVal, endVal, onStart, onEnd }) {
 }
 
 export default function EnrollmentPage() {
+    const [user, setUser] = useState(null);
+    
     const [formData, setFormData] = useState({ code: "", name: "", instructor: "", credits: "", location: "" });
     const [selectedDays, setSelectedDays] = useState([]);
     const [startDate, setStartDate] = useState("");
@@ -42,6 +43,24 @@ export default function EnrollmentPage() {
     const [perDayTimes, setPerDayTimes] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem("currentUser");
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
+    }, []);
+
+    if (!user) {
+        return (
+            <div className="flex min-h-screen bg-simconnect-bg">
+                <Sidebar />
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <p className="font-bold text-gray-500 animate-pulse text-lg">Loading Enrollment Center...</p>
+                </main>
+            </div>
+        );
+    }
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -97,36 +116,84 @@ export default function EnrollmentPage() {
         setIsSubmitting(true);
         setErrorMsg("");
 
-        const response = await fetch("/api/enroll", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...formData,
-                days: selectedDays.join(", "),
-                time: timeFormatted,
-                dayTimes: dayTimesFormatted,
-                startDate,
-                endDate,
-            }),
-        });
-
-        if (response.ok) {
-            alert("Successfully enrolled! The page will now refresh.");
-            window.location.reload();
-        } else {
-            setErrorMsg("Server error: Could not enroll in the class.");
+        try {
+            const response = await fetch("/api/enroll", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: user.username, //track identity
+                    ...formData,
+                    days: selectedDays.join(", "),
+                    time: timeFormatted,
+                    dayTimes: dayTimesFormatted,
+                    startDate,
+                    endDate,
+                }),
+            });
+            if (response.ok) {
+                const enrolledModule = {
+                    code: formData.code,
+                    title: formData.name,
+                    lecturer: formData.instructor,
+                    credits: Number(formData.credits),
+                    fee: Number(formData.credits) * 300,
+                    theme: "bg-teal-100 text-teal-800 border-teal-300",
+                };
+                const enrolledSchedule = {
+                    id: Date.now(),
+                    code: formData.code,
+                    name: formData.name,
+                    time: timeFormatted,
+                    dayTimes: dayTimesFormatted,
+                    startDate,
+                    endDate,
+                    location: formData.location,
+                    instructor: formData.instructor,
+                    days: selectedDays,
+                };
+                const updatedUser = {
+                    ...user,
+                    modules: [...(user.modules || []), enrolledModule],
+                    schedule: [...(user.schedule || []), enrolledSchedule],
+                };
+                localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+                setUser(updatedUser);
+                alert("Successfully enrolled!");
+            } else {
+                const data = await response.json();
+                setErrorMsg(data.error || "Could not enroll in the class.");
+            }
+        } catch (error) {
+            setErrorMsg("Network error. Please try again.");
         }
         setIsSubmitting(false);
     };
 
     const handleDrop = async (code) => {
         if (!confirm(`Are you sure you want to drop ${code}?`)) return;
-        const response = await fetch("/api/enroll", {
+        try {
+            const response = await fetch("/api/enroll", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code }),
-        });
-        if (response.ok) window.location.reload();
+            body: JSON.stringify({
+                username: user.username,
+                code
+             }),
+            });
+            if (response.ok) {
+                const updatedUser = {
+                    ...user,
+                    modules: (user.modules || []).filter((mod) => mod.code !== code),
+                    schedule: (user.schedule || []).filter((cls) => cls.code !== code),
+                };
+                localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+                setUser(updatedUser);
+            } else {
+                alert("Failed to drop class.");
+            }
+        } catch (err) {
+            alert("Network error.");
+        }
     };
 
     const inputClass = "w-full p-3 border-2 border-gray-300 rounded-lg focus:border-gray-900 outline-none font-medium placeholder:text-gray-500 text-simconnect-green";
@@ -284,7 +351,26 @@ export default function EnrollmentPage() {
                     <div className="bg-white border-2 border-gray-900 rounded-xl p-8 shadow-sm h-fit">
                         <h2 className="text-xl font-extrabold text-gray-900 mb-6 uppercase border-b-2 border-gray-200 pb-2">Currently Enrolled</h2>
                         <div className="space-y-4">
-                            {studentData.modules.length === 0 ? (
+                            {(user.modules || []).length === 0 ? (
+                                <p className="text-gray-500 font-medium">You have no enrolled classes.</p>
+                            ) : (
+                                (user.modules || []).map((mod, index) => (
+                                    <div key={index} className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg hover:border-gray-400 transition-colors">
+                                        <div>
+                                            <h3 className="font-extrabold text-gray-900 text-lg">{mod.code}</h3>
+                                            <p className="text-xs font-bold text-gray-600 uppercase">{mod.title}</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleDrop(mod.code)}
+                                            className="px-4 py-2 bg-red-50 text-red-600 border-2 border-red-200 font-bold text-xs uppercase rounded-md hover:bg-red-100 hover:border-red-600 transition-all cursor-pointer"
+                                        >
+                                            Drop
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                            {/* {studentData.modules.length === 0 ? (
                                 <p className="text-gray-500 font-medium">You have no enrolled classes.</p>
                             ) : (
                                 studentData.modules.map((mod, index) => (
@@ -299,8 +385,8 @@ export default function EnrollmentPage() {
                                         </button>
                                     </div>
                                 ))
-                            )}
-                        </div>
+                            )} */}
+                        {/* </div> */}
                     </div>
 
                 </div>

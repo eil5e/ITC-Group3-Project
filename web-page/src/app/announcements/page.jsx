@@ -2,8 +2,7 @@
 
 import Sidebar from "@/components/Sidebar";
 
-// Dummy data tailored to your workflow! 
-// (You can easily move this to your JSON file later)
+// Dummy data
 const announcements = [
     {
         id: 1,
