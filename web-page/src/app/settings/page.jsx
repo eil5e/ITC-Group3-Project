@@ -6,8 +6,8 @@ import studentData from "@/data/studentInfo.json";
 
 export default function SettingsPage() {
     const [name, setName] = useState(studentData.profile.name);
-    const [studentId, setStudentId] = useState("S10234567A");
-    const [email, setEmail] = useState("student@mymail.sim.edu.sg");
+    const [studentId, setStudentId] = useState(studentData.profile.studentId || "S10234567A");
+    const [email, setEmail] = useState(studentData.profile.email || "student@mymail.sim.edu.sg");
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState("");
 
@@ -25,16 +25,18 @@ export default function SettingsPage() {
             const res = await fetch("/api/profile", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name }),
+                body: JSON.stringify({ name, studentId, email }),
             });
             if (res.ok) {
                 setProfileSaved(true);
                 setTimeout(() => setProfileSaved(false), 3000);
             } else {
-                setProfileError("Failed to save profile.");
+                const errorData = await res.json();
+                console.error("Server says:", errorData.error);
+                setProfileError("else. Failed to save profile.");
             }
-        } catch {
-            setProfileError("Failed to save profile.");
+        } catch (err) {
+            setProfileError("Network Error. Please try again.");
         }
     }
 
