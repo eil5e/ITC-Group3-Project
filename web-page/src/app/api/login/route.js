@@ -41,6 +41,7 @@ export async function POST(request) {
             profile: user.profile || { name: user.username, initial: user.username[0] },
             schedule: user.schedule || [],
             modules: user.modules || [],
+            pfp: user.profile?.pfp || null
         });
     } catch (error) {
         console.error("Login Error:", error);

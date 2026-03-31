@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/Sidebar";
 
 export default function SettingsPage() {
     const [name, setName] = useState("");
+    const [username, setUsername] = useState("");
     const [studentId, setStudentId] = useState("");
     const [email, setEmail] = useState("");
+    const [pfp, setPfp] = useState(null);
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState("");
+
+    const [isPfpModalOpen, setIsPfpModalOpen] = useState(false);
+    const fileInputRef = useRef(null);
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -21,11 +26,79 @@ export default function SettingsPage() {
         if (savedUser) {
             const user = JSON.parse(savedUser);
             setName(user.name || "Name not set");
+            setUsername(user.username || "");
             setStudentId(user.studentId || "ID not set");
             setEmail(user.email || "Email not set");
+            setPfp(user.pfp || null);
         }
     }, []);
 
+    useEffect(() => {
+        const handlePfpChange = () => {
+            const savedUser = localStorage.getItem("currentUser");
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                setPfp(user.pfp || null);
+            }
+        };
+        window.addEventListener("storage", handlePfpChange);
+        return () => window.removeEventListener("storage", handlePfpChange);
+    }, [])
+
+    const handleNewPfp = (e) => {
+        const file = e.target.files ? e.target.files[0] : null;
+        if (file) {
+            if (!file.type.startsWith("image/")) {
+                alert("Please select a valid image file.");
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File size must be under 2MB.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    const maxWidth = 250
+                    const maxHeight = 250
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedBase64 = canvas.toDataURL("image/jpeg");
+
+                    setPfp(compressedBase64);
+                    setIsPfpModalOpen(false);
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }; //wanna either add new file to database or replace?
+
+    const handleRemovePfp = () => {
+        setPfp(null);
+        setIsPfpModalOpen(false);
+    };
 
     async function handleSaveProfile(e) {
         e.preventDefault();
@@ -40,7 +113,8 @@ export default function SettingsPage() {
                     username: savedUser?.username,
                     name,
                     studentId,
-                    email
+                    email,
+                    pfp
                 }),
             });
             if (res.ok) {
@@ -50,8 +124,11 @@ export default function SettingsPage() {
                     ...savedUser,
                     name,
                     studentId,
-                    email
+                    email,
+                    pfp
                 }));
+
+                window.dispatchEvent(new Event("storage"));
                 setTimeout(() => setProfileSaved(false), 3000);
             } else {
                 const errorData = await res.json();
@@ -139,13 +216,40 @@ export default function SettingsPage() {
                         <form onSubmit={handleSaveProfile} className="p-6 space-y-5">
                             {/* Avatar */}
                             <div className="flex items-center space-x-4">
-                                <div className="w-16 h-16 rounded-full bg-simconnect-green flex items-center justify-center text-white text-2xl font-black border-2 border-gray-900 shadow-md">
-                                    {initial}
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPfpModalOpen(true)}
+                                    className="w-16 h-16 rounded-full overflow-hidden bg-simconnect-green flex items-center justify-center border-2 border-gray-900 shadow-md cursor-pointer hover:opactiy-90 transition-opacity"
+                                >
+                                    {pfp ? (
+                                        <img src={pfp} alt="Profile" className="w-full h-full object-cover object-center" />
+                                    ) : (
+                                        <span className="text-white text-2xl font-black leading-none flex items-center justify-center">{initial}</span>
+                                    )}
+                                </button>
                                 <div>
                                     <p className="text-sm font-bold text-gray-700">{name}</p>
-                                    <p className="text-xs text-gray-400 font-medium">Display name initial shown in avatar</p>
+                                    <p className="text-xs text-gray-400 font-medium">Click on avatar to change profile picture</p>
                                 </div>
+                            </div>
+
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleNewPfp}
+                                accept="image/*"
+                                className="hidden"
+                            />
+
+                            {/* Username */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Username</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    className="w-full p-3 border-2 border-gray-500 bg-gray-300 rounded-xl focus:border-simconnect-green outline-none font-semibold text-simconnect-green placeholder-gray-400"
+                                    disabled
+                                />
                             </div>
 
                             {/* Name */}
@@ -299,6 +403,58 @@ export default function SettingsPage() {
 
                 </div>
             </main>
+
+            {/* PFP Pop-Up */}
+            {isPfpModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-80 flex flex-col items-center">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">Update Profile Picture</h3>
+
+                        {/*Pfp Preview*/}
+                        <div className="w-32 h-32 rounded-full overflow-hidden bg-simconnect-green flex flex-col items-center justify-center border-2 border-gray-900 mb-6 shadow-md">
+                            {pfp ? (
+                                <img src={pfp} alt="Profile Preview" className="w-full h-full object-cover object-center" />
+                            ) : (
+                                <span className="text-white text-5xl font-black leading-none flex items-center justify-center">{initial}</span>
+                            )}
+                        </div>
+
+                        <div className="w-full space-y-3">
+                            {/* Update Button */}
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current.click()}
+                                className="w-full px-4 py-2 bg-simconnect-green text-white font-bold rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Update Profile Picture
+                            </button>
+
+                            {/* Remove Button */}
+                            {pfp && (
+                                <button
+                                    type="button"
+                                    onClick={handleRemovePfp}
+                                    className="w-full px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity"
+                                >
+                                    Remove Profile Picture
+                                </button>
+                            )}
+
+                            {/* Cancel Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsPfpModalOpen(false)}
+                                className="w-full px-4 py-2 bg-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-400 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            )}
+
         </div>
     );
 }

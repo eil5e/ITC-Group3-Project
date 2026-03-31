@@ -53,10 +53,15 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center w-16 h-16 border-4 border-gray-900 rounded-full">
-              <span className="text-4xl font-light text-gray-900">
-                {user.initial || "?"}
-              </span>
+            <div className="w-16 h-16 border-3 rounded-full overflow-hidden border-gray-900 flex flex-col items-center justify-center">
+              {user.pfp ? (
+                <img src={user.pfp} alt="Profile" className="w-full h-full object-cover object-center"
+                />
+              ) : (
+                <span className="text-4xl font-light text-gray-900">
+                {user.name?.trim() ? user.name.trim() [0].toUpperCase() : "?"}
+                </span>
+              )}
             </div>
             <span className="mt-2 text-xs font-bold uppercase text-gray-900">
               Profile
