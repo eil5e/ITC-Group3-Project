@@ -31,7 +31,16 @@ export async function POST(request) {
             return NextResponse.json({ error: "Username already exists" }, { status: 400 });
         }
 
-        users.push({ username, password });
+        users.push({ 
+            username,
+            password ,
+            profile: {
+                name: username,
+                studentId: "Not Set",
+                email: "Not Set",
+                courses: []
+            },
+        });
 
         fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
 

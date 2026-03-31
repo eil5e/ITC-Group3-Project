@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import studentData from "@/data/studentInfo.json";
+import studentData from "@/data/studentInfo.json"; //? yes no?
 
 export default function SettingsPage() {
-    const [name, setName] = useState(studentData.profile.name);
-    const [studentId, setStudentId] = useState(studentData.profile.studentId || "S10234567A");
-    const [email, setEmail] = useState(studentData.profile.email || "student@mymail.sim.edu.sg");
+    const [name, setName] = useState("" || studentData.profile.name);
+    const [studentId, setStudentId] = useState("" || studentData.profile.studentId || "S10234567A");
+    const [email, setEmail] = useState("" || studentData.profile.email || "student@mymail.sim.edu.sg");
     const [profileSaved, setProfileSaved] = useState(false);
     const [profileError, setProfileError] = useState("");
 
@@ -16,6 +16,37 @@ export default function SettingsPage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordMsg, setPasswordMsg] = useState("");
     const [passwordError, setPasswordError] = useState("");
+
+    useEffect(() => {
+        const username = localStorage.getItem("loggedInUser");
+
+        if (!username) {
+            window.location.href = "/"; // Redirect to login if not logged in...need?
+            return;
+        }
+
+        async function loadProfile() {
+            try {
+                const res = await fetch ("/api/profile", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username }),
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    setName(data.profile.name || "");
+                    setStudentId(data.profile.studentId || "");
+                    setEmail(data.profile.email || "");
+                }
+            } catch (err) {
+                console.error("Failed to load profile:", err);
+            }
+        }
+
+        loadProfile();
+    }, []);
+
 
     async function handleSaveProfile(e) {
         e.preventDefault();
@@ -54,6 +85,10 @@ export default function SettingsPage() {
         }
         if (newPassword !== confirmPassword) {
             setPasswordError("Passwords do not match.");
+            return;
+        }
+        if (newPassword === currentPassword) {
+            setPasswordError("New password cannot be the same as current password.");
             return;
         }
         setPasswordMsg("Password updated successfully.");

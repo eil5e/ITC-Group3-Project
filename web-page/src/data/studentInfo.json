@@ -45,17 +45,6 @@
       "days": [
         "Monday"
       ]
-    },
-    {
-      "id": 1774450386962,
-      "code": "ABC-123",
-      "name": "MOOMOO",
-      "time": "10:00AM - 02:30PM",
-      "location": "L4A.15",
-      "instructor": "Dr Tan",
-      "days": [
-        "Thursday"
-      ]
     }
   ],
   "modules": [

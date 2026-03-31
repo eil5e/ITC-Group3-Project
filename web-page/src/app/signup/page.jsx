@@ -37,7 +37,7 @@ export default function SignupPage() {
       if (res.ok) {
         setSuccess(true);
         setTimeout(() => {
-          router.push("/");
+          router.push(`/signup/signup-details?username=${encodeURIComponent(username)}`);
         }, 2000);
       } else {
         setError(data.error || "Failed to create account.");
@@ -64,7 +64,7 @@ export default function SignupPage() {
         {success ? (
           <div className="text-center space-y-4">
             <p className="text-sm font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
-              Account created successfully! Redirecting you to login...
+              Account created successfully! Redirecting you to fill in your details...
             </p>
           </div>
         ) : (

@@ -23,12 +23,13 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
+        localStorage.setItem("loggedInUser", username);
         router.push("/dashboard");
       } else {
         setError(data.error || "Invalid username or password.");
       }
     } catch (err) {
-      setError("Network error. Please try again later.");
+      setError("Network error. Could not connect to the server.");
     }
   }
 
